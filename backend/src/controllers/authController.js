@@ -2,43 +2,42 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-const createAccount = async (req, res) => {
+const registerUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-        const existingAccount = await User.findOne({ email });
+        const exisitingUser = await User.findOne({ email });
 
-        if (existingAccount) return res.status(400).json({ message: "Email already in use!" });
+        if (exisitingUser) return res.status(400).json({ message: "Email already registered!" });
 
-        const encryptedPassword = await bcrypt.hash(password, 10);
-        const newUser = await Account.create({ username, email, password: encryptedPassword });
-        await newUser.save();
-        res.status(201).json({ message: "Account successfully created" });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await User.create({ username, email, password: hashedPassword });
+        await user.save();
+        res.status(201).json({ message: "User created successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Registration failed, please try again" });
+        res.status(500).json({ message: "Registration failed, try again" });
     }
 };
 
-const authenticateUser = async (req, res) => {
+const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const account = await Account.findOne({ email });
+        const user = await User.findOne({ email });
 
-        if (!account) {
-            return res.status(401).json({ error: "Authentication failed: Account not found" });
+        if (!user) {
+            return res.status(401).json({ error: "Authentication failed: User not found" });
         }
 
-        const isPasswordValid = await bcrypt.compare(password, account.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: "Authentication failed: Incorrect password" });
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: "Authentication failed: Passwords doesnt match" });
         }
-
-        const accessToken = jwt.sign({ userId: account._id }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
             expiresIn: "1h",
         });
-        res.status(200).json({ token: accessToken });
+        res.status(200).json({ token });
     } catch (error) {
-        res.status(500).json({ error: "Login failed, please try again" });
+        res.status(500).json({ error: "Login failed" });
     }
 };
 
-module.exports = { createAccount, authenticateUser };
+module.exports = { registerUser, loginUser };

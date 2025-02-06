@@ -1,18 +1,18 @@
 const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
-const { uploadImage, fetchAllImages, fetchImagesByUser, removeImage } = require("../controllers/photoController");
+const { uploadPhoto, getAllPhotos, getPhotoByUser, deletePhoto } = require("../controllers/photoController");
 const upload = require("../middleware/uploadMiddleware");
-const { postComment, removeComment, fetchComments } = require("../controllers/photoCommentHandlerController");
+const { addComment, deleteComments, getComments } = require("../controllers/photoCommentController");
 
 const router = express.Router();
 
-router.post("/", authMiddleware, upload.single("photo"), uploadImage);
-router.get("/", fetchAllImages);
-router.get("/user/:userId", fetchImagesByUser);
-router.delete("/:id", authMiddleware, removeImage);
+router.post("/", authMiddleware, upload.single("photo"), uploadPhoto);
+router.get("/", getAllPhotos);
+router.get("/user/:userId", getPhotoByUser);
+router.delete("/:id", authMiddleware, deletePhoto);
 
-router.get("/:photoId/comments", fetchComments);
-router.post("/:photoId/comments", authMiddleware, postComment);
-router.delete("/:photoId/comments/:commentId", authMiddleware, removeComment);
+router.get("/:photoId/comments", getComments);
+router.post("/:photoId/comments", authMiddleware, addComment);
+router.delete("/:photoId/comments/:commentId", authMiddleware, deleteComments);
 
 module.exports = router;

@@ -1,65 +1,65 @@
-const Image = require("../models/Photo");
+const Photo = require("../models/Photo");
 
-const uploadImage = async (req, res) => {
+const uploadPhoto = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: "No file uploaded" });
         }
 
-        const { details } = req.body;
+        const { description } = req.body;
 
-        const newImage = await Image.create({
+        const photo = await Photo.create({
             filename: req.file.filename,
-            description: details,
+            description,
             user: req.userId,
         });
 
-        res.status(201).json(newImage);
+        res.status(201).json(photo);
     } catch (error) {
-        res.status(500).json({ error: "Failed to upload image", message: error.message });
+        res.status(500).json({ error: "Failed to upload photo", message: error.message });
     }
 };
 
-const fetchAllImages = async (req, res) => {
+const getAllPhotos = async (req, res) => {
     try {
-        const allImages = await Image.find().populate("user", "username email");
-        res.status(200).json(allImages);
+        const photos = await Photo.find().populate("user", "username email");
+        res.status(200).json(photos);
     } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve images" });
+        res.status(500).json({ error: "Failed to fetch photos" });
     }
 };
 
-const fetchImagesByUser = async (req, res) => {
+const getPhotoByUser = async (req, res) => {
     try {
-        const userImages = await Image.find({ user: req.params.userId }).populate("user", "username email");
-        res.status(200).json(userImages);
+        const photos = await Photo.find({ user: req.params.userId }).populate("user", "username email");
+        res.status(200).json(photos);
     } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve images" });
+        res.status(500).json({ error: "Failed to fetch photos" });
     }
 };
 
-const removeImage = async (req, res) => {
+const deletePhoto = async (req, res) => {
     try {
-        const image = await Image.findById(req.params.id);
-        if (!image) {
-            return res.status(404).json({ error: "Image not found" });
+        const photo = await Photo.findById(req.params.id);
+        if (!photo) {
+            return res.status(404).json({ error: "Photo not found" });
         }
 
-        if (image.user.toString() !== req.userId) {
-            return res.status(403).json({ error: "Unauthorized to remove this image" });
+        if (photo.user.toString() !== req.userId) {
+            return res.status(403).json({ error: "Unauthorized to delete this photo" });
         }
 
-        await Image.deleteOne({ _id: image._id });
-        res.status(200).json({ message: "Image removed successfully" });
+        await Photo.deleteOne({ _id: photo._id });
+        res.status(200).json({ message: "Photo deleted successfully" });
     } catch (error) {
-        console.error("Error removing image:", error);
-        res.status(500).json({ error: "Failed to remove image", message: error.message });
+        console.error("Error deleting photo:", error); // Log the error
+        res.status(500).json({ error: "Failed to delete photo", message: error.message });
     }
 };
 
 module.exports = {
-    uploadImage,
-    fetchAllImages,
-    fetchImagesByUser,
-    removeImage,
+    uploadPhoto,
+    getAllPhotos,
+    getPhotoByUser,
+    deletePhoto,
 };

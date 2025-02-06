@@ -1,80 +1,80 @@
-const Profile = require("../models/User");
-const Article = require("../models/Post");
-const Image = require("../models/Photo");
-const encryptor = require("bcrypt");
+const User = require("../models/User");
+const Post = require("../models/Post");
+const Photo = require("../models/Photo");
+const bcrypt = require("bcrypt");
 
-const getProfile = async (req, res) => {
+const getUserProfile = async (req, res) => {
     try {
         const { username } = req.params;
 
-        let profile;
+        let user;
 
         if (username) {
-            profile = await Profile.findOne({ username }).select("-password");
+            user = await User.findOne({ username }).select("-password");
         } else {
-            profile = await Profile.findById(req.userId).select("-password");
+            user = await User.findById(req.userId).select("-password");
         }
 
-        if (!profile) {
+        if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const articles = await Article.find({ author: profile._id });
-        const images = await Image.find({ author: profile._id });
+        const posts = await Post.find({ user: user._id });
+        const photos = await Photo.find({ user: user._id });
 
-        res.status(200).json({ profile, articles, images });
+        res.status(200).json({ user, posts, photos });
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch user profile", message: error.message });
     }
 };
 
-const getProfileById = async (req, res) => {
+const getUserProfileById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const profile = await Profile.findById(id).select("-password");
+        const user = await User.findById(id).select("-password");
 
-        if (!profile) {
+        if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const articles = await Article.find({ author: profile._id });
-        const images = await Image.find({ author: profile._id });
+        const posts = await Post.find({ user: user._id });
+        const photos = await Photo.find({ user: user._id });
 
-        res.status(200).json({ profile, articles, images });
+        res.status(200).json({ user, posts, photos });
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch user profile", message: error.message });
     }
 };
 
-const updateProfile = async (req, res) => {
+const updateUserProfile = async (req, res) => {
     try {
         const userId = req.userId;
         const { username, email, password } = req.body;
 
-        const updates = {};
-        if (username) updates.username = username;
-        if (email) updates.email = email;
-        if (password) updates.password = await encryptor.hash(password, 10);
+        const updateFields = {};
+        if (username) updateFields.username = username;
+        if (email) updateFields.email = email;
+        if (password) updateFields.password = await bcrypt.hash(password, 10);
 
-        if (Object.keys(updates).length === 0) {
+        if (Object.keys(updateFields).length === 0) {
             return res.status(400).json({ error: "No fields provided for update" });
         }
 
-        const updatedProfile = await Profile.findByIdAndUpdate(userId, updates, { new: true, runValidators: true });
+        const updateUser = await User.findByIdAndUpdate(userId, updateFields, { new: true, runValidators: true });
 
-        if (!updatedProfile) {
+        if (!updateUser) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        res.status(200).json({ message: "Profile updated successfully", profile: updatedProfile });
+        res.status(200).json({ message: "Profile updated successfully", user: updateUser });
     } catch (error) {
         res.status(500).json({ error: "Failed to update profile", message: error.message });
     }
 };
 
 module.exports = {
-    getProfile,
-    updateProfile,
-    getProfileById,
+    getUserProfile,
+    updateUserProfile,
+    getUserProfileById,
 };

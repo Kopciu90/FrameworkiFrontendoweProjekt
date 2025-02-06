@@ -1,26 +1,26 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const initializeDB = require("./config/db");
+const connectDB = require("./config/db_config");
 const authRoutes = require("./routes/auth");
 const postsRoutes = require("./routes/posts");
 const photosRoutes = require("./routes/photos");
 const userRoutes = require("./routes/user");
 const path = require("path");
 
-const server = express();
-const SERVER_PORT = process.env.PORT || 5000;
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-initializeDB();
+connectDB();
 
-server.use(cors());
-server.use(express.json());
-server.use("/auth", authRoutes);
-server.use("/posts", postsRoutes);
-server.use("/photos", photosRoutes);
-server.use("/uploads", express.static(path.join(__dirname, "uploads")));
-server.use("/user", userRoutes);
+app.use(cors());
+app.use(express.json());
+app.use("/auth", authRoutes);
+app.use("/posts", postsRoutes);
+app.use("/photos", photosRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/user", userRoutes);
 
-server.listen(SERVER_PORT, () => {
-    console.log(`Server is live at http://localhost:${SERVER_PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
